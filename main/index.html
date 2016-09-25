@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Codify</title>
+
+  <link href='http://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="css/demo.css">
+  <script src="src-noconflict/jquery-1.12.0.min.js"></script>
+  
+</head>
+  <body>
+    <ul class="dropdown">
+        <li>
+			Document:&nbsp;&nbsp;
+			<select id="selectBox" onchange="changeFunc()">
+				<option value="1">Java</option>
+				<option value="2">Python</option>
+				<option value="3">C++</option>
+			</select>			
+        </li>
+      <li>
+        <a class="snacks" href="#">Functions</a>
+        <ul>
+          <li><a class="snickers" href="#" onclick="add_var()">Bubble Sort</a></li>
+        </ul>
+      </li>
+	  <li>
+			<input type="button" id="add" onclick="add_snippet()" value="Add as a Snippet">
+		</li>
+		<li>
+			<input type="button" id="save" onclick="save()" value="Save File">
+		</li>
+		<li>
+			<input type="button" id="run" onclick="run()" value="Compile and Execute">
+		</li>
+    </ul>
+	<pre id="editor">
+	</pre>
+<pre id="output">Output</pre>
+ <style type="text/css" media="screen">
+    body {
+        overflow: hidden;
+    }
+
+    #editor {
+        margin: 0;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 250px;
+        right: 0;
+		height:75%;
+    }
+	#output {
+        margin: 0;
+        position: absolute;
+        top: 75%;
+        bottom: 0;
+        left: 250px;
+        right: 0;
+		height:25%;
+    }
+	
+  </style>
+    <script>
+  
+function add_snippet(){
+	var snippet_name = prompt('Enter snippet name:');
+	var snippet_code = editor.getValue();
+	/*var mode="";
+	var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+		switch(selectedValue)
+		{
+			case "1": 
+				mode="javascript";
+				break;
+			case "2":
+				mode="java";
+				break;
+		}*/
+	//console.log(snippet_code);
+	$.ajax({
+		data: {snippet_name: snippet_name, snippet_code: snippet_code} ,
+		url:"http://localhost:8000/cgi-bin/snippet_append.py", 
+		success: function(msg){alert(msg);}
+	});
+ }
+ var count = 0;
+
+ var file_name="";
+ function save(){
+	if(count == 0)
+	{
+		file_name = prompt('Enter file name:');
+		count++;
+	}
+	var ext="";
+	var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+		switch(selectedValue)
+		{
+			case "1": 
+				ext=".java";
+				break;
+			case "2":
+				ext=".py";
+				break;
+			case "3":
+				ext=".cpp";
+				break;
+		}
+		
+	var file_code = editor.getValue();
+	$.ajax({
+		data: {file_name: file_name, file_code: file_code, ext: ext} ,
+		url:"http://localhost:8000/cgi-bin/save_file.py", 
+		success: function(msg){alert(msg);}
+	});
+ }
+ function run(){
+	
+	//console.log(snippet_code);
+	var ext="";
+	var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+		switch(selectedValue)
+		{
+			case "1": 
+				ext=".java";
+				break;
+			case "2":
+				ext=".py";
+				break;
+			case "3":
+				ext=".cpp";
+				break;
+		}
+		
+	
+	$.ajax({
+		type: "GET" ,
+		data: {file_name: file_name, ext: ext} ,
+		url:"http://localhost:8000/cgi-bin/run.py", 
+		success: function(msg){
+		document.getElementById("output").innerHTML=msg;
+		}
+	});
+ }
+  </script>
+	<script src="src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+	<script src="src-noconflict/ext-language_tools.js"></script>
+	<script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.getSession().setMode("ace/mode/java");
+	function add_var()
+	{
+		alert(snippet_name);
+		editor.insert("var j;");
+	}
+	function changeFunc() {
+		var selectBox = document.getElementById("selectBox");
+		var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+		switch(selectedValue)
+		{
+			case "1": 
+				editor.getSession().setMode("ace/mode/java");
+				break;
+			case "2":
+				editor.getSession().setMode("ace/mode/python");
+				break;
+			case "3":
+				editor.getSession().setMode("ace/mode/c_cpp");
+				break;
+		}
+   }
+
+</script>
+     
+ <script> 
+     // trigger extension 
+     ace.require("ace/ext/language_tools"); 
+     var editor = ace.edit("editor");
+	 editor.setOptions({ 
+         enableBasicAutocompletion: true, 
+         enableSnippets: true, 
+         enableLiveAutocompletion: true 
+     }); 
+ </script> 
+
+	<script src="src-noconflict/tendina.min.js"></script>
+    <script>
+      $('.dropdown').tendina({
+        // This is a setup made only
+        // to show which options you can use,
+        // it doesn't actually make sense!
+        animate: true,
+        speed: 500,
+        onHover: false,
+        hoverDelay: 300,
+        activeMenu: $('#deepest'),
+        openCallback: function(clickedEl) {
+          console.log('Hey dude!');
+        },
+        closeCallback: function(clickedEl) {
+          console.log('Bye dude!');
+        }
+      })
+	  var i=editor.getValue();
+	  JSrun = function() 
+		{
+			var str;
+			var outnode = document.getElementById("output");
+			outnode.value = "";
+			
+			d = new Date().getTime();
+			try {
+				with (Math) {
+					str = JSoutput(eval(editor.getValue()));
+				}
+			} catch(e) {
+				str = e.name+" at line "+(e.lineNumber-56)+": "+e.message;
+			}
+			//var tnode = document.getElementById("JStiming");
+			//tnode.innerHTML = ""+(new Date().getTime()-d)/1000;
+			if (str != undefined) {console.log(outnode.value);outnode.value += str;}
+		}
+		JSoutput = function(a) 
+		{
+			var str = "["
+			if (typeof(a)=="object" && a.length) {
+				for (var i=0; i < a.length; i++) 
+					if (typeof(a[i])=="object" && a[i].length) {
+						str += (i==0?"":" ")+"["
+						for (var j=0; j<a[i].length; j++) 
+							str += a[i][j]+(j==a[i].length-1?
+									"]"+(i==a.length-1?"]":",")+"\n":", ");
+					} else str += a[i]+(i==a.length-1?"]":", ");
+			} else str = a;
+			return str;
+		}
+		writeln = function(str) 
+		{
+			if (!str) str="";
+			var outnode = document.getElementById("output");
+			outnode.value += JSoutput(str)+"\n";
+		}
+
+		
+			
+    </script>
+	
+  </body>
+</html>
